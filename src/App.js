@@ -1,26 +1,76 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react';
+import ChatScreen from './screen/ChatScreen';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+//const client = new W3CWebSocket('ws://localhost:8080/message');
+
+var ws = null;
+var url = "ws://127.0.0.1:8080/ws/message";
+
+function setConnected(connected) {
+    document.getElementById('connect').disabled = connected;
+    document.getElementById('disconnect').disabled = !connected;
+    document.getElementById('echo').disabled = !connected;
 }
 
-export default App;
+function connect() {
+    ws = new WebSocket(url);
+    ws.onopen = function () {
+        setConnected(true);
+        log('Info: Connection Established.');
+    };
+
+    ws.onmessage = function (event) {
+        log(event.data);
+    };
+
+    ws.onclose = function (event) {
+        setConnected(false);
+        log('Info: Closing Connection.');
+    };
+}
+
+function disconnect() {
+    if (ws != null) {
+        ws.close();
+        ws = null;
+    }
+    setConnected(false);
+}
+
+function echo() {
+    if (ws != null) {
+        var message = document.getElementById('message').value;
+        log('Sent to server :: ' + message);
+        ws.send(message);
+    } else {
+        alert('connection not established, please connect.');
+    }
+}
+
+function log(message) {
+    var console = document.getElementById('logging');
+    var p = document.createElement('p');
+    p.appendChild(document.createTextNode(message));
+    console.appendChild(p);
+}
+
+export default class App extends Component {
+    componentWillMount() {
+        /*
+        client.onopen = () => {
+          console.log('WebSocket Client Connected');
+        };
+        client.onmessage = (message) => {
+          console.log(message);
+        };
+
+         */
+        //connect();
+    }
+
+    render() {
+        return (
+            <ChatScreen/>
+        );
+    }
+}
